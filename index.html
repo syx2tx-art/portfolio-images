@@ -227,12 +227,28 @@
         .viewer-nav:hover { background: rgba(255,255,255,0.25); transform: translateY(-50%) scale(1.1); }
         .viewer-prev { left: 16px; }
         .viewer-next { right: 16px; }
+        .viewer-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 14px;
+            border-radius: 20px;
+            z-index: 2001;
+            pointer-events: none;
+            display: none;
+        }
+        .viewer-counter.show { display: block; }
         @media (max-width: 640px) {
             .viewer-close { top: 12px; right: 16px; width: 36px; height: 36px; font-size: 24px; }
             .viewer-tip { font-size: 10px; bottom: 12px; }
             .viewer-nav { width: 36px; height: 36px; font-size: 16px; }
             .viewer-prev { left: 8px; }
             .viewer-next { right: 8px; }
+            .viewer-counter { top: 12px; font-size: 12px; }
         }
         /* 卡片点击指针 */
         .project-card {
@@ -354,7 +370,8 @@
         <div class="viewer-close" id="viewerCloseBtn">&times;</div>
         <div class="viewer-nav viewer-prev" id="viewerPrevBtn"><i class="fa-solid fa-chevron-left"></i></div>
         <div class="viewer-nav viewer-next" id="viewerNextBtn"><i class="fa-solid fa-chevron-right"></i></div>
-        <div class="viewer-tip">🖱️ 滚轮缩放 | 鼠标拖拽移动 | 左右键切换 | 点击背景或按 ESC 关闭</div>
+        <div class="viewer-counter" id="viewerCounter"></div>
+        <div class="viewer-tip">🖱️ 滚轮缩放 | 鼠标拖拽移动 | 左右键切换 | 移动端双击/双指缩放</div>
     </div>
 
     <script>
@@ -364,20 +381,30 @@
             const viewerImg = document.getElementById('viewerImage');
             const prevBtn = document.getElementById('viewerPrevBtn');
             const nextBtn = document.getElementById('viewerNextBtn');
+            const counterEl = document.getElementById('viewerCounter');
             let isDragging = false, startX = 0, startY = 0, translateX = 0, translateY = 0, scale = 1;
             let viewerGallery = [], viewerIndex = -1;
             let touchStartX = 0, touchStartY = 0;
+            let initialPinchDistance = 0, initialScale = 1;
+            let lastTapTime = 0;
             function resetTransform() { scale = 1; translateX = 0; translateY = 0; applyTransform(); }
             function applyTransform() { viewerImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; }
             function updateNavVisibility() {
                 const show = viewerGallery.length > 1;
                 prevBtn.style.display = show ? 'flex' : 'none';
                 nextBtn.style.display = show ? 'flex' : 'none';
+                if (show && viewerIndex >= 0) {
+                    counterEl.textContent = `${viewerIndex + 1} / ${viewerGallery.length}`;
+                    counterEl.classList.add('show');
+                } else {
+                    counterEl.classList.remove('show');
+                }
             }
             function navigateViewer(dir) {
                 if (viewerGallery.length === 0) return;
                 viewerIndex = (viewerIndex + dir + viewerGallery.length) % viewerGallery.length;
                 viewerImg.src = viewerGallery[viewerIndex];
+                updateNavVisibility();
                 resetTransform();
                 viewerImg.style.transition = 'opacity 0.15s';
                 viewerImg.style.opacity = '0';
@@ -446,14 +473,50 @@
             });
             viewer.addEventListener('touchstart', (e) => {
                 if (e.target.closest('.viewer-nav')) return;
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    // Double tap detection
+                    const now = Date.now();
+                    if (now - lastTapTime < 300) {
+                        // Double tap: toggle zoom
+                        if (scale > 1.01) { resetTransform(); }
+                        else { scale = 2.5; translateX = 0; translateY = 0; applyTransform(); }
+                        lastTapTime = 0;
+                    } else {
+                        lastTapTime = now;
+                    }
+                }
+                if (e.touches.length === 2) {
+                    initialPinchDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialScale = scale;
+                    isDragging = false;
+                }
+            }, { passive: true });
+            viewer.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    if (initialPinchDistance > 0) {
+                        let newScale = initialScale * (dist / initialPinchDistance);
+                        newScale = Math.max(0.5, Math.min(4, newScale));
+                        scale = newScale;
+                        applyTransform();
+                    }
+                }
             }, { passive: true });
             viewer.addEventListener('touchend', (e) => {
-                if (viewerGallery.length === 0) return;
+                const wasPinching = initialPinchDistance > 0;
+                if (e.touches.length === 0) initialPinchDistance = 0;
+                if (viewerGallery.length === 0 || wasPinching) return;
                 const dx = e.changedTouches[0].clientX - touchStartX;
                 const dy = e.changedTouches[0].clientY - touchStartY;
-                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50 && scale < 1.01) {
                     navigateViewer(dx < 0 ? 1 : -1);
                 }
             });
