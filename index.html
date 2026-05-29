@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>石易鑫 · 3ds Max / VRay 渲染师 | 工装&家装作品集</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background-color: #000000; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        button, a, .gallery-img { cursor: pointer; touch-action: manipulation; }
+        .hover-scale-img { transition: transform 0.4s ease; }
+        .gallery-scroll {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 12px;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .gallery-scroll::-webkit-scrollbar { height: 4px; }
+        .gallery-item {
+            flex: 0 0 70%;
+            scroll-snap-align: start;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #1a1a1a;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-item:hover { transform: scale(1.02); }
+        @media (min-width: 640px) { .gallery-item { flex: 0 0 45%; } }
+        @media (min-width: 768px) { .gallery-item { flex: 0 0 30%; } }
+        .gallery-img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+        .modal-scroll { max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            will-change: opacity, transform;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .section-anchor { scroll-margin-top: 80px; }
+        /* Hero轮播样式 */
+        .hero-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out;
+        }
+        .slide.active { opacity: 1; z-index: 1; }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1) translateX(0);
+        }
+        .slide.active .ken-burns-effect {
+            animation: zoomAndPan 14s ease-out forwards;
+        }
+        @keyframes zoomAndPan {
+            0% { transform: scale(1) translateX(0); }
+            100% { transform: scale(1.12) translateX(3%); }
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 100%);
+            z-index: 2;
+        }
+        .slider-dots {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 15;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .dot:hover {
+            transform: scale(1.4);
+            background-color: rgba(255,255,255,1);
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+        .dot.active {
+            background-color: white;
+            width: 24px;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(255,255,255,0.5);
+        }
+        @media (max-width: 640px) { 
+            .slider-dots { bottom: 20px; gap: 8px; } 
+            .dot.active { width: 20px; }
+        }
+        /* 图片查看器全屏浮层 */
+        .image-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.92);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s, opacity 0.2s;
+            cursor: grab;
+        }
+        .image-viewer.active { visibility: visible; opacity: 1; }
+        .viewer-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .viewer-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            transition: transform 0.05s linear;
+            transform-origin: center center;
+            cursor: grab;
+            user-select: none;
+            pointer-events: auto;
+        }
+        .viewer-image:active { cursor: grabbing; }
+        .viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 32px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2001;
+            transition: 0.2s;
+        }
+        .viewer-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .viewer-tip {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            width: fit-content;
+            margin: 0 auto;
+            padding: 6px 12px;
+            border-radius: 30px;
+            pointer-events: none;
+            z-index: 2001;
+        }
+        @media (max-width: 640px) {
+            .viewer-close { top: 12px; right: 16px; width: 36px; height: 36px; font-size: 24px; }
+            .viewer-tip { font-size: 10px; bottom: 12px; }
+        }
+        /* 卡片点击指针 */
+        .project-card {
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .project-card:active { transform: scale(0.98); }
+    </style>
+</head>
+<body class="bg-black text-white font-[Inter]">
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 w-full z-50 py-4 px-5 flex justify-between items-center backdrop-blur-md bg-black/60 border-b border-white/10">
+        <div class="text-lg font-light tracking-wide">石易鑫 <span class="text-gray-400 text-xs ml-1">/ Shi Yixin</span></div>
+        <div class="hidden md:flex space-x-6 text-sm font-light">
+            <a href="#home" class="hover:text-gray-300 transition">首页</a>
+            <a href="#about" class="hover:text-gray-300 transition">服务</a>
+            <a href="#resume" class="hover:text-gray-300 transition">简历</a>
+            <a href="#commercial" class="hover:text-gray-300 transition">工装</a>
+            <a href="#residential" class="hover:text-gray-300 transition">家装</a>
+            <a href="#contact" class="hover:text-gray-300 transition">联系</a>
+        </div>
+        <div class="md:hidden text-2xl cursor-pointer" id="mobileMenuBtn"><i class="fa-solid fa-bars"></i></div>
+    </nav>
+
+    <!-- 手机侧边菜单 -->
+    <div id="mobileNavPanel" class="fixed top-0 left-0 w-full h-full bg-black/95 z-50 transform -translate-x-full transition-transform duration-300 ease-out backdrop-blur-lg">
+        <div class="flex justify-end p-5"><button id="closeMobileMenu" class="text-2xl">&times;</button></div>
+        <div class="flex flex-col items-center space-y-8 text-xl font-light mt-12">
+            <a href="#home" class="mobile-nav-link">首页</a>
+            <a href="#about" class="mobile-nav-link">服务</a>
+            <a href="#resume" class="mobile-nav-link">简历</a>
+            <a href="#commercial" class="mobile-nav-link">工装项目</a>
+            <a href="#residential" class="mobile-nav-link">家装项目</a>
+            <a href="#contact" class="mobile-nav-link">联系</a>
+        </div>
+    </div>
+
+    <!-- HERO 轮播 -->
+    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="hero-slider" id="heroSlider"></div>
+        <div class="hero-overlay"></div>
+        <div class="relative z-10 max-w-5xl px-5 text-center">
+            <p class="tracking-[0.3em] text-xs text-gray-200 mb-3 uppercase drop-shadow-md">3ds Max / VRay 渲染师</p>
+            <h1 class="text-5xl md:text-8xl font-light leading-tight mb-4 tracking-tight drop-shadow-lg">石易鑫</h1>
+            <p class="text-lg md:text-2xl font-light text-gray-100 drop-shadow">工装 · 家装空间可视化 | 高效率写实表现</p>
+            <div class="h-px w-12 bg-white/40 mx-auto my-6"></div>
+            <p class="max-w-md mx-auto text-gray-200 text-sm md:text-base leading-relaxed px-2 drop-shadow">专注空间情绪与视觉表达，快速建模+VRay写实渲染</p>
+            <div class="mt-8 flex justify-center gap-4 flex-wrap">
+                <a href="#commercial" class="border border-white px-6 py-2.5 rounded-full text-sm hover:bg-white hover:text-black transition backdrop-blur-sm">工装项目</a>
+                <a href="#residential" class="border border-gray-300 text-gray-200 px-6 py-2.5 rounded-full text-sm hover:border-white hover:text-white transition backdrop-blur-sm">家装项目</a>
+            </div>
+        </div>
+        <div class="slider-dots" id="sliderDots"></div>
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-gray-300 text-[10px] tracking-[0.3em] uppercase animate-pulse z-10">Scroll</div>
+    </section>
+
+    <!-- 服务区域 -->
+    <section id="about" class="py-20 px-5 border-t border-white/10 bg-black">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-start">
+            <div class="fade-up"><p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-3">Service</p><h2 class="text-3xl md:text-6xl font-light leading-tight">室内空间视觉设计师</h2></div>
+            <div class="space-y-4 text-gray-300 leading-relaxed text-sm md:text-base fade-up">
+                <p>专注工装与商业空间的氛围表达与效果图表现。熟练使用3ds Max与VRay进行建模与渲染，擅长快速完成空间视觉化与方案呈现。</p>
+                <p>具备环境艺术设计背景，曾参与可口可乐办公空间、博物馆食堂翻新、品牌展厅等商业项目，注重光影、材料与空间情绪的统一表达。同时持续研究AI辅助设计与高效率工作流，不断优化从建模到渲染的整体制作流程，以更高效率完成空间视觉输出。</p>
+                <div class="pt-3"><p class="text-white text-sm font-light mb-2">📐 可提供服务：</p><ul class="list-disc pl-5 space-y-1 text-gray-300 text-sm"><li>工装/家装效果图制作（3ds Max + VRay写实渲染）</li><li>空间方案视觉化（快速出图、多角度表现）</li><li>商业空间、办公、餐饮、展厅等室内设计表现</li></ul></div>
+                <div class="flex flex-wrap gap-2 pt-2"><span class="border border-white/20 px-3 py-1 rounded-full text-[11px]">3ds Max 高效建模</span><span class="border border-white/20 px-3 py-1 rounded-full text-[11px]">VRay 写实渲染</span><span class="border border-white/20 px-3 py-1 rounded-full text-[11px]">工装/家装全案</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 简历区域（简略） -->
+    <section id="resume" class="py-20 px-5 border-t border-white/10 bg-zinc-950/40 section-anchor">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-12 fade-up"><p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-1">Resume / CV</p><h2 class="text-3xl md:text-6xl font-light">个人简历</h2><div class="h-0.5 w-12 bg-white/20 mt-3"></div></div>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-6 fade-up">
+                    <div class="bg-white/5 rounded-2xl p-6 backdrop-blur-sm border border-white/10"><div class="flex items-center gap-3 mb-5"><i class="fa-regular fa-user text-2xl text-gray-400"></i><h3 class="text-xl font-light">基础信息</h3></div><div class="space-y-3 text-sm"><p><span class="text-gray-400 w-24 inline-block">姓名：</span>石易鑫</p><p><span class="text-gray-400 w-24 inline-block">年龄：</span>23岁</p><p><span class="text-gray-400 w-24 inline-block">工作经验：</span>2年</p><p><span class="text-gray-400 w-24 inline-block">毕业院校：</span>怀化学院 / 环境艺术设计 本科</p></div></div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-5"><i class="fa-regular fa-briefcase text-2xl text-gray-400"></i><h3 class="text-xl font-light">接单倾向</h3></div><ul class="space-y-2 text-sm text-gray-300 list-disc pl-5"><li>室内效果图外包 / 空间可视化服务</li><li>工装/家装全案渲染支持</li><li>可承接全国项目，线上沟通</li><li>报价合理，出图高效</li></ul></div>
+                </div>
+                <div class="lg:col-span-2 space-y-6 fade-up">
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-5"><i class="fa-regular fa-building text-2xl text-gray-400"></i><h3 class="text-xl font-light">工作经历</h3></div><div><div class="flex flex-wrap justify-between"><h4 class="text-white font-medium">广州上洋广告有限公司 · 室内设计师</h4><span class="text-gray-400 text-xs">2024.11 – 2025.04</span></div><ul class="text-gray-300 text-sm mt-2 list-disc pl-5"><li>负责3ds Max渲染、建模，与甲方沟通方案</li><li>独立完成湛江可口可乐博物馆食堂翻新项目全案效果图</li><li>合作完成厦门可口可乐办公室、喜力得展厅、云南可口可乐博物馆等项目</li></ul></div></div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-5"><i class="fa-regular fa-diagram-project text-2xl text-gray-400"></i><h3 class="text-xl font-light">代表项目经验</h3></div><div class="grid sm:grid-cols-2 gap-4 text-sm"><div class="border-l-2 border-blue-500/50 pl-3"><p class="text-white font-medium">湛江可口可乐博物馆食堂翻新</p><p class="text-gray-400 text-xs">独立完成 · 全案效果图</p></div><div class="border-l-2 border-blue-500/50 pl-3"><p class="text-white font-medium">厦门可口可乐办公室设计</p><p class="text-gray-400 text-xs">合作设计 · 办公空间</p></div><div class="border-l-2 border-blue-500/50 pl-3"><p class="text-white font-medium">喜力得展厅项目</p><p class="text-gray-400 text-xs">展厅效果表现</p></div><div class="border-l-2 border-blue-500/50 pl-3"><p class="text-white font-medium">云南可口可乐博物馆</p><p class="text-gray-400 text-xs">文化空间渲染</p></div></div></div>
+                    <div class="grid sm:grid-cols-2 gap-5"><div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-4"><i class="fa-regular fa-graduation-cap text-xl text-gray-400"></i><h3 class="text-lg font-light">教育背景</h3></div><p class="text-white text-sm">怀化学院 · 环境艺术设计 本科</p><p class="text-gray-400 text-xs">2023 – 2025 | 学士学位</p><p class="text-gray-400 text-xs mt-2">主修：室内设计、商业空间设计、公共空间设计等。</p></div><div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-4"><i class="fa-regular fa-medal text-xl text-gray-400"></i><h3 class="text-lg font-light">荣誉 & 证书</h3></div><ul class="text-sm text-gray-300 space-y-1 list-disc pl-4"><li>校级奖学金多次</li><li>大学生职业技能大赛省级奖项</li><li>3ds Max 认证证书</li></ul></div></div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10"><div class="flex items-center gap-3 mb-4"><i class="fa-regular fa-code-branch text-xl text-gray-400"></i><h3 class="text-lg font-light">专业技能</h3></div><div class="flex flex-wrap gap-2"><span class="bg-white/10 px-3 py-1 rounded-full text-xs">3ds Max (高级)</span><span class="bg-white/10 px-3 py-1 rounded-full text-xs">VRay (写实渲染)</span><span class="bg-white/10 px-3 py-1 rounded-full text-xs">CAD</span><span class="bg-white/10 px-3 py-1 rounded-full text-xs">Photoshop</span><span class="bg-white/10 px-3 py-1 rounded-full text-xs">After Effects</span></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 工装项目区域 -->
+    <section id="commercial" class="py-20 px-5 border-t border-white/10 bg-black section-anchor">
+        <div class="max-w-7xl mx-auto"><div class="mb-12 fade-up"><p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-1">Commercial Works</p><h2 class="text-3xl md:text-6xl font-light">工装 · 商业空间</h2><div class="h-0.5 w-12 bg-white/20 mt-3"></div></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="commercialProjectsGrid"></div></div>
+    </section>
+
+    <!-- 家装项目区域 -->
+    <section id="residential" class="py-20 px-5 border-t border-white/10 bg-zinc-950/30 section-anchor">
+        <div class="max-w-7xl mx-auto"><div class="mb-12 fade-up"><p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-1">Residential Works</p><h2 class="text-3xl md:text-6xl font-light">家装 · 居住空间</h2><div class="h-0.5 w-12 bg-white/20 mt-3"></div></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="residentialProjectsGrid"></div></div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer id="contact" class="border-t border-white/10 py-12 px-5 bg-black">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6 text-sm">
+            <div><h3 class="text-xl font-light">石易鑫</h3><p class="text-gray-400 text-xs mt-1">3ds Max / VRay 渲染师 · 空间视觉表现</p></div>
+            <div class="space-y-1 text-gray-400 text-xs"><p><i class="fa-regular fa-envelope mr-2"></i> 1250027279@qq.com</p><p><i class="fa-brands fa-behance mr-2"></i> behance.net/shiyixin</p><p><i class="fa-brands fa-xiaohongshu mr-2"></i> 小红书：Shi_YX</p></div>
+            <div class="text-gray-500 text-[11px]">© 2025 石易鑫 · 高效视觉工作流 · 接私单咨询</div>
+        </div>
+    </footer>
+
+    <!-- 项目详情模态框 -->
+    <div id="projectModal" class="fixed inset-0 z-[100] flex items-center justify-center invisible opacity-0 transition-all duration-300 bg-black/95 backdrop-blur-md p-3">
+        <div class="bg-black border border-white/20 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl"><div class="flex justify-between items-center p-4 border-b border-white/10"><h3 class="text-lg font-light">项目详情</h3><button id="closeModalBtn" class="text-2xl hover:text-gray-400 leading-none">&times;</button></div><div class="modal-scroll p-4" id="modalContent"></div></div>
+    </div>
+
+    <!-- 图片查看器浮层 -->
+    <div id="imageViewer" class="image-viewer">
+        <div class="viewer-container"><img id="viewerImage" class="viewer-image" src="" alt="放大查看"></div>
+        <div class="viewer-close" id="viewerCloseBtn">&times;</div>
+        <div class="viewer-tip">🖱️ 滚轮缩放 | 鼠标拖拽移动 | 点击背景或按 ESC 关闭</div>
+    </div>
+
+    <script>
+        // ========= 图片查看器（滚轮缩放+拖拽） =========
+        (function() {
+            const viewer = document.getElementById('imageViewer');
+            const viewerImg = document.getElementById('viewerImage');
+            let isDragging = false, startX = 0, startY = 0, translateX = 0, translateY = 0, scale = 1;
+            function resetTransform() { scale = 1; translateX = 0; translateY = 0; applyTransform(); }
+            function applyTransform() { viewerImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; }
+            function onWheel(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = scale * delta;
+                if (newScale > 4 || newScale < 0.5) return;
+                const rect = viewerImg.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+                const originX = mouseX / rect.width, originY = mouseY / rect.height;
+                scale = newScale;
+                const deltaX = (originX - 0.5) * rect.width * (1 - 1/delta);
+                const deltaY = (originY - 0.5) * rect.height * (1 - 1/delta);
+                translateX -= deltaX; translateY -= deltaY;
+                applyTransform();
+            }
+            function onMouseDown(e) { isDragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY; viewerImg.style.cursor = 'grabbing'; e.preventDefault(); }
+            function onMouseMove(e) { if (!isDragging) return; translateX = e.clientX - startX; translateY = e.clientY - startY; applyTransform(); }
+            function onMouseUp() { isDragging = false; viewerImg.style.cursor = 'grab'; }
+            window.openImageViewer = function(src) {
+                if (!src) return;
+                viewerImg.src = src;
+                resetTransform();
+                viewer.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                viewerImg.addEventListener('wheel', onWheel, { passive: false });
+                viewerImg.addEventListener('mousedown', onMouseDown);
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+                viewerImg.style.cursor = 'grab';
+            };
+            function closeViewer() {
+                viewer.classList.remove('active');
+                document.body.style.overflow = '';
+                viewerImg.removeEventListener('wheel', onWheel);
+                viewerImg.removeEventListener('mousedown', onMouseDown);
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                viewerImg.src = '';
+            }
+            viewer.addEventListener('click', (e) => { if (e.target === viewer || e.target.id === 'viewerCloseBtn') closeViewer(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && viewer.classList.contains('active')) closeViewer(); });
+        })();
+
+        // ========= 封面轮播 =========
+        const heroImages = ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-1361-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+"https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/咖啡厅/jimeng-2026-05-29-3034-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+"https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-2738-将生66cb323c-4597-4ea1-a29d-36fe394e38c5成一....webp",
+"https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/中式屏风.webp",
+"https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1244-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"];
+        let currentIndex = 0, slideInterval;
+        const sliderContainer = document.getElementById('heroSlider');
+        const dotsContainer = document.getElementById('sliderDots');
+        function initSlider() {
+            sliderContainer.innerHTML = '';
+            heroImages.forEach((src, idx) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = `slide ${idx === 0 ? 'active' : ''}`;
+                const img = document.createElement('img');
+                img.src = src; img.alt = `hero-${idx}`;
+                img.className = idx === 0 ? 'ken-burns-effect' : '';
+                slideDiv.appendChild(img);
+                sliderContainer.appendChild(slideDiv);
+            });
+            createDotsWithHover();
+            startAutoPlay();
+        }
+        function createDotsWithHover() {
+            dotsContainer.innerHTML = '';
+            heroImages.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                if (idx === currentIndex) dot.classList.add('active');
+                dot.addEventListener('mouseenter', () => {
+                    if (idx !== currentIndex) { stopAutoPlay(); goToSlideImmediate(idx); setTimeout(() => startAutoPlay(), 3000); }
+                    else { stopAutoPlay(); setTimeout(() => startAutoPlay(), 3000); }
+                });
+                dot.addEventListener('click', () => { stopAutoPlay(); goToSlideImmediate(idx); startAutoPlay(); });
+                dotsContainer.appendChild(dot);
+            });
+        }
+        function goToSlideImmediate(index) {
+            const slides = document.querySelectorAll('.slide');
+            if (!slides.length) return;
+            const currentActive = slides[currentIndex];
+            if (currentActive) { currentActive.classList.remove('active'); const img = currentActive.querySelector('img'); if (img) img.classList.remove('ken-burns-effect'); }
+            const newSlide = slides[index];
+            if (newSlide) {
+                newSlide.classList.add('active');
+                const newImg = newSlide.querySelector('img');
+                if (newImg) { newImg.classList.remove('ken-burns-effect'); void newImg.offsetWidth; newImg.classList.add('ken-burns-effect'); }
+            }
+            currentIndex = index;
+            updateDotsActive();
+        }
+        function updateDotsActive() { document.querySelectorAll('.dot').forEach((dot, idx) => { idx === currentIndex ? dot.classList.add('active') : dot.classList.remove('active'); }); }
+        function nextSlide() { goToSlideImmediate((currentIndex + 1) % heroImages.length); }
+        function startAutoPlay() { if (slideInterval) clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 5500); }
+        function stopAutoPlay() { if (slideInterval) { clearInterval(slideInterval); slideInterval = null; } }
+        const heroSec = document.getElementById('home');
+        if (heroSec) { heroSec.addEventListener('mouseenter', stopAutoPlay); heroSec.addEventListener('mouseleave', startAutoPlay); heroSec.addEventListener('touchstart', stopAutoPlay); heroSec.addEventListener('touchend', startAutoPlay); }
+        initSlider();
+
+        // ========= 项目数据 =========
+        const commercialProjects = [
+{ id: "c1", title: "书山广场改造", type: "工装 / 城市公共空间", shortDesc: "整体秉持现代极简与人文关怀的设计理念。通过引入流畅的线条与通透的空间布局，打破原有场地的封闭感，营造出自由开放的城市公共……", fullDesc: "整体秉持现代极简与人文关怀的设计理念。通过引入流畅的线条与通透的空间布局，打破原有场地的封闭感，营造出自由开放的城市公共客厅。精选高品质石材与耐候材质，搭配立体绿植系统，实现商业活力与生态休闲的完美融合，打造一处兼具时尚感与亲和力的城市新地标。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-1361-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-1361-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-3090-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-4097-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-5861-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-7814-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-8460-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-9662-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/书山广场改造/jimeng-2026-05-29-9979-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "现代极简 + 人文关怀，流畅线条与通透布局营造城市公共客厅。", analysis: "立体绿植系统 + 耐候材质，动线串联商业活力与生态休闲区域。", software: "3ds Max, VRay, Photoshop", responsibility: "全案效果图制作" },
+    { id: "c2", title: "咖啡厅", type: "工装 / 餐饮空间", shortDesc: "设计风格融合工业风与暖调自然主义。裸露的混凝土顶面与温润的原木家具形成质感对比，搭配藤编座椅与柔和暖光照明，营造出松弛慵……", fullDesc: "设计风格融合工业风与暖调自然主义。裸露的混凝土顶面与温润的原木家具形成质感对比，搭配藤编座椅与柔和暖光照明，营造出松弛慵懒的氛围。空间布局灵活多变，既可满足商务社交也可享受静谧独处，致力于成为连接邻里情感、激发生活灵感的精神角落。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/咖啡厅/jimeng-2026-05-29-3034-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/咖啡厅/jimeng-2026-05-29-3034-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/咖啡厅/jimeng-2026-05-29-3441-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "工业风 + 暖调自然主义，裸露混凝土与原木、藤编碰撞。", analysis: "灵活分区满足商务社交与独处需求，暖光照明强化氛围层次。", software: "3ds Max, VRay", responsibility: "建模渲染全流程" },
+    { id: "c3", title: "学校大门改造", type: "工装 / 教育建筑", shortDesc: "设计紧扣庄重、智慧与开放的教育主题。采用简洁大气的现代几何体块，象征知识的殿堂与严谨的治学精神。入口广场结合绿植与地标性……", fullDesc: "设计紧扣庄重、智慧与开放的教育主题。采用简洁大气的现代几何体块，象征知识的殿堂与严谨的治学精神。入口广场结合绿植与地标性雕塑，强化了仪式感和校园辨识度，同时注重人车分流与通行效率，旨在打造一扇展现学校文化风貌、迎接学子未来的城市名片。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/学校大门改造/jimeng-2026-05-29-9779-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/学校大门改造/jimeng-2026-05-29-9779-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/学校大门改造/效果图.webp"], concept: "现代几何体块 + 庄重仪式感，简洁大气象征知识殿堂。", analysis: "人车分流优化通行效率，绿植与雕塑强化校园文化辨识度。", software: "3ds Max, VRay, Photoshop", responsibility: "全案效果图表现" },
+    { id: "c4", title: "户外亲子公园", type: "工装 / 户外休闲", shortDesc: "设计融合现代露营美学与自然景观，以房车和天幕为核心元素，营造自由松弛的微度假氛围。空间利用原木铺装、暖色串灯与烧烤设施构……", fullDesc: "设计融合现代露营美学与自然景观，以房车和天幕为核心元素，营造自由松弛的微度假氛围。空间利用原木铺装、暖色串灯与烧烤设施构建休闲动线，结合户外影院区域提升互动体验。整体风格兼具自然肌理与时尚情调，打造出适合家庭参与的沉浸式户外社交场所。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-3595-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-3595-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-3645-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-3984-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-5282-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-5867-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/户外亲子公园/jimeng-2026-05-29-9147-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "现代露营美学，房车+天幕营造微度假松弛氛围。", analysis: "原木铺装 + 暖色串灯 + 户外影院，构建家庭互动休闲动线。", software: "3ds Max, VRay", responsibility: "场景建模与渲染" },
+    { id: "c5", title: "景观公园", type: "工装 / 城市景观", shortDesc: "采用清新明快的现代园林风格，通过丰富的四季植被色彩与几何化的铺装拼花，构建节奏感强烈的景观轴线。空间以极简的线条元素与通……", fullDesc: "采用清新明快的现代园林风格，通过丰富的四季植被色彩与几何化的铺装拼花，构建节奏感强烈的景观轴线。空间以极简的线条元素与通透的木质廊架打破传统公园的沉闷，巧妙结合雕塑水景与现代休憩设施，呈现出兼具生态活力与建筑美感的城市开放空间。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/景观公园/jimeng-2026-05-29-2123-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/景观公园/jimeng-2026-05-29-2123-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/景观公园/jimeng-2026-05-29-7024-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/景观公园/jimeng-2026-05-29-9618-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "现代园林 + 极简线条，四季植被与几何铺装构建节奏感景观。", analysis: "木质廊架 + 雕塑水景打破沉闷，生态活力与建筑美感兼具。", software: "3ds Max, VRay, Photoshop", responsibility: "景观效果图全流程" },
+    { id: "c6", title: "苗韵展馆", type: "工装 / 文化展馆", shortDesc: "展馆设计深植于苗族文化底蕴，运用粗犷原石堆叠与现代金属材质进行空间叙事。内部展示区采用沉浸式暗调光源设计，辅以极具民族特……", fullDesc: "展馆设计深植于苗族文化底蕴，运用粗犷原石堆叠与现代金属材质进行空间叙事。内部展示区采用沉浸式暗调光源设计，辅以极具民族特征的图腾纹理浮雕墙，凸显文化的厚重与神秘感。空间布局庄重而深邃，旨在通过材质的碰撞与光影的引导，呈现苗族历史文明的独特韵味。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-1111-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-1111-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-1676-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-3840-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-4022-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-5885-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-7480-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9268-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9331-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9511-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "原石 + 金属碰撞叙事，暗调光源凸显苗族文化厚重与神秘。", analysis: "沉浸式展示动线，图腾浮雕墙与光影引导串联民族文明脉络。", software: "3ds Max, VRay", responsibility: "展馆效果图全案" },
+{ id: "l1", title: "云南可口可乐博物馆", type: "工装 / 文化博物馆", shortDesc: "现代工业风融合生态理念。外观采用简洁几何体量，室内以灰白为主色调，搭配绿色植物与木质元素，营造自然与科技交织的空间氛围。……", fullDesc: "现代工业风融合生态理念。外观采用简洁几何体量，室内以灰白为主色调，搭配绿色植物与木质元素，营造自然与科技交织的空间氛围。材质上大量运用混凝土肌理板、金属框架及LED灯光系统，空间布局开放通透，流线型动线引导访客沉浸式观展。整体设计强调叙事体验与品牌文化传递，在克制硬朗的工业基底中注入生态温度，传递环保可持续的品牌精神。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1244-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1244-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1877-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4145-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4616-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4895-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-6896-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-8347-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-9154-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-9661-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "现代工业风 + 生态理念，灰白主调融合绿植与木质元素。", analysis: "沉浸式观展动线，LED灯光与混凝土肌理板强化品牌叙事。", software: "3ds Max, VRay, Photoshop", responsibility: "合作建模、灯光渲染" },
+    { id: "l2", title: "厦门可口可乐公司办公楼设计", type: "工装 / 品牌办公", shortDesc: "以“生态现代主义”为核心理念，融合可口可乐品牌红与太古沉稳色调。外观采用通透玻璃幕墙与立体绿植墙，彰显自然与可持续发展理……", fullDesc: "以“生态现代主义”为核心理念，融合可口可乐品牌红与太古沉稳色调。外观采用通透玻璃幕墙与立体绿植墙，彰显自然与可持续发展理念；室内以开放协作区与静谧独立舱组合，动线流畅、功能复合。色彩以中性灰、木色为基底，点缀品牌红与生机绿，材质选用金属、玻璃、生态板材与软包织物，兼具质感与舒适度。整体设计致敬可口可乐“积极乐观”精神，打造兼具人文关怀与高效生产力的办公环境。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-1693-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-1693-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-2686-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-3589-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-3875-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-4473-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-4634-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-5684-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-9352-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-9766-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "生态现代主义，玻璃幕墙 + 品牌红点缀，开放协作办公。", analysis: "开放区+独立舱组合，品牌色点缀中性灰基底，动线流畅。", software: "3ds Max, VRay", responsibility: "合作建模、渲染后期" },
+    { id: "l3", title: "湛江可口可乐饭堂翻新改造", type: "工装 / 餐饮改造", shortDesc: "现代活力餐饮空间设计。以可口可乐经典红白为主色调，搭配原木与哑光金属材质，营造清爽时尚的用餐氛围。墙面以艺术化手法植入品……", fullDesc: "现代活力餐饮空间设计。以可口可乐经典红白为主色调，搭配原木与哑光金属材质，营造清爽时尚的用餐氛围。墙面以艺术化手法植入品牌元素，户外区设置巨型瓶身装置与霓虹灯标，强化视觉记忆点。整体理念融合品牌IP与年轻化美学，注重功能分区与社交体验，将传统饭堂升级为兼具辨识度与舒适度的沉浸式餐饮空间。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-6933-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-6933-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-7186-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-7336-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-7471-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-7680-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-7841-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-8410-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/项目落地/效果图精选/湛江可口可乐饭堂翻新改造/jimeng-2026-05-29-9758-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"], concept: "红白主色调 + 原木金属，品牌IP融合年轻化美学。", analysis: "功能分区优化，户外巨型瓶身装置+霓虹灯标强化视觉记忆。", software: "3ds Max, VRay, Photoshop", responsibility: "独立全案建模、渲染、后期" }
+];
+        const residentialProjects = [
+    { id: "r1", title: "原木风家居设计", type: "家装 / 原木自然", shortDesc: "以自然原木为核心元素，融合日式禅意与现代简约风格。空间采用大量木质格栅、肌理感墙面和原木家具，营造温暖、宁静的居住氛围。……", fullDesc: "以自然原木为核心元素，融合日式禅意与现代简约风格。空间采用大量木质格栅、肌理感墙面和原木家具，营造温暖、宁静的居住氛围。暖色调灯光与原木材质相得益彰，形成柔和的光影层次。整体设计强调与自然的连接，通过深色微水泥墙面、横梁结构等细节，打造沉稳私密且充满自然气息的休憩空间。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-2738-将生66cb323c-4597-4ea1-a29d-36fe394e38c5成一....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-2738-将生66cb323c-4597-4ea1-a29d-36fe394e38c5成一....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-5249-将生42c74d3b-e3bd-4984-9586-f36efb9082b3成一....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-6281-将生725ad8d6-1649-41b7-a9c8-badfe716c0c8成一....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-7224-将生6ebdfdd4-d413-4ff6-bc3d-45ee71246bf3成一....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-8084-将生客餐厨一体(图1)成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，....webp"], concept: "日式禅意 + 现代简约，原木格栅与暖光营造返璞归真氛围。", analysis: "LDK一体化布局，深色微水泥与横梁结构增强空间层次。", software: "3ds Max, VRay", responsibility: "全屋建模与渲染" },
+    { id: "r2", title: "宋氏美学家居设计", type: "家装 / 现代轻奢", shortDesc: "采用现代轻奢风格，注重精致细节与高级感营造。空间以白色高光柜体与原木饰面为主调，搭配竖向木饰面、灰色调软包等材质，形成简……", fullDesc: "采用现代轻奢风格，注重精致细节与高级感营造。空间以白色高光柜体与原木饰面为主调，搭配竖向木饰面、灰色调软包等材质，形成简洁而富有层次感的视觉效果。嵌入式照明与线性灯带巧妙结合，提供充足且柔和的光线。整体设计强调功能与美学的平衡，通过玻璃衣柜、皮质软包等元素，打造出高效、舒适且富有现代感的居住环境。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/中式屏风.webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/中式屏风.webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/人物场景.webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/光影运用.webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/客餐厅一体.webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/微距特写.webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/宋氏美学家居设计/特写镜头.webp"], concept: "白色高光 + 原木饰面 + 线性灯带，精致轻奢质感。", analysis: "功能美学平衡，嵌入式照明 + 玻璃衣柜提升现代居住体验。", software: "3ds Max, VRay", responsibility: "全案渲染" },
+    { id: "r3", title: "民宿设计", type: "家装 / 民宿旅居", shortDesc: "融合了日式简约与现代风格，营造宁静舒适的旅居体验。开放式起居空间以深色木纹、白色织物为主材，搭配暖色调灯光，形成温馨的视……", fullDesc: "融合了日式简约与现代风格，营造宁静舒适的旅居体验。开放式起居空间以深色木纹、白色织物为主材，搭配暖色调灯光，形成温馨的视觉感受。空间注重自然光线的引入，通过开阔的阳台视野和浅木色家具，将室内外景观有机连接。整体设计强调功能性与舒适性的结合，为旅客提供放松、自然的休憩空间。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/民宿设计/jimeng-2026-05-29-1703-将a42c9369-a9d8-4324-a096-a7b21cb189e0生成一....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/民宿设计/jimeng-2026-05-29-1703-将a42c9369-a9d8-4324-a096-a7b21cb189e0生成一....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/民宿设计/jimeng-2026-05-29-3935-将光影迷人生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保....webp"], concept: "日式简约 + 现代风格，深色木纹与暖光营造宁静旅居。", analysis: "开放起居 + 开阔阳台，自然光线串联室内外景观。", software: "3ds Max, VRay", responsibility: "建模灯光渲染" },
+    { id: "r4", title: "简约家居设计", type: "家装 / 现代极简", shortDesc: "采用现代极简风格，追求空间的高效利用与视觉的纯净感。客餐厨一体化布局通过白色高光柜体与原木饰面的搭配，实现整洁、流畅的空……", fullDesc: "采用现代极简风格，追求空间的高效利用与视觉的纯净感。客餐厨一体化布局通过白色高光柜体与原木饰面的搭配，实现整洁、流畅的空间动线。嵌入式照明提供充足且均匀的光线，营造明亮通透的氛围。整体设计强调“少即是多”的理念，通过简洁的线条、中性的色彩和功能性家具，打造出实用、舒适且富有现代感的居住空间。", mainImage: "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/简约家居设计/jimeng-2026-05-29-1429-将！图片1生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保....webp", galleryImages: ["https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/简约家居设计/jimeng-2026-05-29-1429-将！图片1生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/简约家居设计/jimeng-2026-05-29-4857-将图片1生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持....webp", "https://cdn.jsdelivr.net/gh/syx2tx-art/portfolio-images@main/images/家居设计/效果图精选/简约家居设计/jimeng-2026-05-29-7087-将图片1生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持....webp"], concept: "少即是多，白色高光 + 原木饰面 + 客餐厨一体。", analysis: "高效动线 + 嵌入式均匀照明，极简线条营造明亮通透感。", software: "3ds Max, VRay", responsibility: "全屋效果图" }
+];
+
+        // 打开详情模态框（供卡片点击调用）
+        function openProjectModal(project) {
+            const modal = document.getElementById('projectModal');
+            const modalContent = document.getElementById('modalContent');
+            const galleryHtml = project.galleryImages?.length ? `<div class="mb-5"><h4 class="text-white/70 text-xs uppercase tracking-wide mb-2">项目图集 (点击图片放大查看)</h4><div class="gallery-scroll">${project.galleryImages.map(img => `<div class="gallery-item" onclick="openImageViewer('${img.replace(/'/g, "\\'")}')"><img src="${img}" class="gallery-img" loading="lazy" alt="项目图"></div>`).join('')}</div><p class="text-gray-500 text-[10px] mt-2 text-center">← 滑动浏览 → 点击图片可放大缩放</p></div>` : '';
+            modalContent.innerHTML = `<div class="grid md:grid-cols-5 gap-5"><div class="md:col-span-3"><img src="${project.mainImage}" class="w-full h-56 object-cover rounded-xl mb-3" alt="${project.title}"><h2 class="text-xl font-light mb-1">${project.title}</h2><p class="text-gray-400 text-xs uppercase tracking-wider mb-3">${project.type}</p><div class="text-gray-300 space-y-3 text-xs md:text-sm"><p><strong class="text-white">◈ 完整描述</strong><br>${project.fullDesc}</p><p><strong class="text-white">◈ 设计概念</strong><br>${project.concept}</p><p><strong class="text-white">◈ 空间分析</strong><br>${project.analysis}</p></div></div><div class="md:col-span-2 space-y-4 bg-white/5 p-3 rounded-xl"><div><h4 class="text-white text-sm font-semibold">🛠️ 软件工具</h4><p class="text-gray-300 text-xs">${project.software}</p></div><div><h4 class="text-white text-sm font-semibold">📌 负责内容</h4><p class="text-gray-300 text-xs">${project.responsibility}</p></div><div class="border-t border-white/10 pt-2"><p class="text-gray-400 text-[11px] italic">⚡ 高效率工作流：标准化材质/灯光预设，快速输出高品质效果图。</p></div></div></div>${galleryHtml}`;
+            modal.classList.remove('invisible', 'opacity-0');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('projectModal');
+            modal.classList.add('invisible', 'opacity-0');
+            document.body.style.overflow = '';
+        }
+
+        // 渲染卡片：点击卡片整体打开详情
+        function renderCards(containerId, projects) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            projects.forEach(proj => {
+                const card = document.createElement('div');
+                card.className = 'project-card group bg-black/40 border border-white/10 rounded-2xl overflow-hidden hover:border-white/30 transition duration-300 fade-up';
+                card.innerHTML = `<img src="${proj.mainImage}" class="w-full h-52 object-cover hover-scale-img transition duration-500" loading="lazy"><div class="p-4"><p class="text-gray-400 text-[11px] uppercase tracking-wider">${proj.type}</p><h3 class="text-lg font-light mt-1">${proj.title}</h3><p class="text-gray-400 text-xs mt-2 line-clamp-2">${proj.shortDesc}</p><div class="mt-3 text-xs border border-white/30 px-3 py-1.5 rounded-full inline-block hover:bg-white hover:text-black transition">查看详情</div></div>`;
+                card.onclick = () => openProjectModal(proj);
+                container.appendChild(card);
+            });
+        }
+
+        renderCards('commercialProjectsGrid', commercialProjects);
+        renderCards('residentialProjectsGrid', residentialProjects);
+
+        // 模态框关闭按钮
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('projectModal').addEventListener('click', (e) => { if (e.target === document.getElementById('projectModal')) closeModal(); });
+
+        // 滚动动画（上下均触发）
+        const fadeElements = document.querySelectorAll('.fade-up');
+        const scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); else entry.target.classList.remove('visible'); });
+        }, { threshold: 0.2, rootMargin: "0px 0px -30px 0px" });
+        fadeElements.forEach(el => scrollObserver.observe(el));
+        const mutationObserver = new MutationObserver(() => { document.querySelectorAll('.fade-up:not([data-observed])').forEach(el => { scrollObserver.observe(el); el.setAttribute('data-observed', 'true'); }); });
+        mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+        // 移动端菜单
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const navPanel = document.getElementById('mobileNavPanel');
+        const closeMobile = document.getElementById('closeMobileMenu');
+        const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+        function openMobileNav() { navPanel.classList.remove('-translate-x-full'); document.body.style.overflow = 'hidden'; }
+        function closeMobileNav() { navPanel.classList.add('-translate-x-full'); document.body.style.overflow = ''; }
+        mobileBtn?.addEventListener('click', openMobileNav);
+        closeMobile?.addEventListener('click', closeMobileNav);
+        mobileLinks.forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); const target = link.getAttribute('href'); if (target) document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' }); closeMobileNav(); }));
+        navPanel?.addEventListener('click', (e) => { if(e.target === navPanel) closeMobileNav(); });
+    </script>
+</body>
+</html>
