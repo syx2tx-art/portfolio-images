@@ -269,6 +269,7 @@
             <a href="#resume" class="hover:text-gray-300 transition">简历</a>
             <a href="#commercial" class="hover:text-gray-300 transition">工装</a>
             <a href="#residential" class="hover:text-gray-300 transition">家装</a>
+            <a href="#inquiry" class="hover:text-gray-300 transition">合作</a>
             <a href="#contact" class="hover:text-gray-300 transition">联系</a>
         </div>
         <div class="md:hidden text-2xl cursor-pointer" id="mobileMenuBtn"><i class="fa-solid fa-bars"></i></div>
@@ -283,6 +284,7 @@
             <a href="#resume" class="mobile-nav-link">简历</a>
             <a href="#commercial" class="mobile-nav-link">工装项目</a>
             <a href="#residential" class="mobile-nav-link">家装项目</a>
+            <a href="#inquiry" class="mobile-nav-link">合作意向</a>
             <a href="#contact" class="mobile-nav-link">联系</a>
         </div>
     </div>
@@ -348,6 +350,113 @@
     <section id="residential" class="py-20 px-5 border-t border-white/10 bg-zinc-950/30 section-anchor">
         <div class="max-w-7xl mx-auto"><div class="mb-12 fade-up"><p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-1">Residential Works</p><h2 class="text-3xl md:text-6xl font-light">家装 · 居住空间</h2><div class="h-0.5 w-12 bg-white/20 mt-3"></div></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="residentialProjectsGrid"></div></div>
+    </section>
+
+        <!-- 合作意向表单 -->
+    <section id="inquiry" class="py-20 px-5 border-t border-white/10 bg-zinc-950/40 section-anchor">
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-10 text-center fade-up">
+                <p class="text-gray-500 uppercase tracking-[0.3em] text-xs mb-1">Start a Project</p>
+                <h2 class="text-3xl md:text-5xl font-light">合作意向</h2>
+                <p class="text-gray-400 text-sm mt-3">填写以下信息，我会在 24 小时内回复您</p>
+            </div>
+            <form id="inquiryForm" class="space-y-6 fade-up">
+                <!-- 1. 基础信息 -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-sm font-medium text-white/80 mb-4 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">1</span>基础信息</h3>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div><label class="text-xs text-gray-400 mb-1 block">您的姓名</label><input type="text" name="name" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="如：张三"></div>
+                        <div><label class="text-xs text-gray-400 mb-1 block">公司/工作室名称</label><input type="text" name="company" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="如：XX设计工作室"></div>
+                    </div>
+                </div>
+                <!-- 2. 项目信息 -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-sm font-medium text-white/80 mb-4 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">2</span>项目信息</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">项目类型</label>
+                            <select name="projectType" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/50 transition appearance-none" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%23888%22><path d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;background-size:16px">
+                                <option value="" disabled selected class="text-gray-500 bg-black">请选择项目类型</option>
+                                <option value="家装-住宅" class="bg-black">家装 · 住宅/公寓/别墅</option>
+                                <option value="工装-办公" class="bg-black">工装 · 办公空间</option>
+                                <option value="工装-餐饮" class="bg-black">工装 · 餐饮空间</option>
+                                <option value="工装-酒店" class="bg-black">工装 · 酒店空间</option>
+                                <option value="工装-展厅" class="bg-black">工装 · 展厅空间</option>
+                                <option value="工装-商业" class="bg-black">工装 · 商业空间</option>
+                                <option value="其他" class="bg-black">其他（请在描述中说明）</option>
+                            </select>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="text-xs text-gray-400 mb-1 block">空间面积（平方米）</label><input type="number" name="area" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="如：120"></div>
+                            <div><label class="text-xs text-gray-400 mb-1 block">效果图角度数量</label><input type="text" name="renderCount" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="如：5张"></div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">是否已有 CAD 平面图</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="hasCAD" value="是" class="accent-white"> 是，已有</label>
+                                <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="hasCAD" value="否" class="accent-white"> 否，需从草图开始</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">期望交付时间</label>
+                            <input type="text" name="deadline" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="如：2026年6月中旬 / 2周内">
+                        </div>
+                    </div>
+                </div>
+                <!-- 3. 预算与联系方式 -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-sm font-medium text-white/80 mb-4 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">3</span>预算与联系方式 <span class="text-red-400 text-xs font-normal ml-auto">* 必填</span></h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">预算范围</label>
+                            <select name="budget" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/50 transition appearance-none" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%23888%22><path d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;background-size:16px">
+                                <option value="" disabled selected class="text-gray-500 bg-black">请选择预算范围</option>
+                                <option value="1k-3k" class="bg-black">1k - 3k</option>
+                                <option value="3k-5k" class="bg-black">3k - 5k</option>
+                                <option value="5k-1w" class="bg-black">5k - 1w</option>
+                                <option value="1w以上" class="bg-black">1w 以上</option>
+                                <option value="面议" class="bg-black">面议</option>
+                            </select>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="text-xs text-gray-400 mb-1 block">手机号/微信 <span class="text-red-400">*</span></label><input type="text" name="phone" required class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="方便联系您"></div>
+                            <div><label class="text-xs text-gray-400 mb-1 block">邮箱（备用）</label><input type="email" name="email" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition" placeholder="your@email.com"></div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">项目详细描述</label>
+                            <textarea name="description" rows="4" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/50 transition resize-none" placeholder="请描述您的项目需求、风格偏好、特殊要求等……"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4. 附加选项 -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-sm font-medium text-white/80 mb-4 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">4</span>附加选项</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="needRevision" value="是" class="accent-white" checked> 需要后期修改服务</label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="needRevision" value="否" class="accent-white"> 不需要后期修改</label>
+                        <div class="border-t border-white/10 pt-3 mt-3">
+                            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="needSource" value="是" class="accent-white"> 需要源文件（3ds Max + PSD）</label>
+                            <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"><input type="radio" name="needSource" value="否" class="accent-white" checked> 不需要源文件</label>
+                        </div>
+                        <div class="border-t border-white/10 pt-3 mt-3">
+                            <label class="text-xs text-gray-400 mb-2 block">您从哪里了解到我？</label>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer"><input type="radio" name="source" value="小红书" class="accent-white"> 小红书</label>
+                                <label class="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer"><input type="radio" name="source" value="抖音" class="accent-white"> 抖音</label>
+                                <label class="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer"><input type="radio" name="source" value="朋友推荐" class="accent-white"> 朋友推荐</label>
+                                <label class="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer"><input type="radio" name="source" value="搜索引擎" class="accent-white"> 搜索引擎</label>
+                                <label class="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer"><input type="radio" name="source" value="其他" class="accent-white"> 其他</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 提交按钮 -->
+                <div class="text-center pt-4">
+                    <button type="submit" id="submitBtn" class="px-10 py-3 bg-white text-black rounded-full text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed">发送合作意向</button>
+                    <p id="formMsg" class="text-xs mt-3 h-5"></p>
+                </div>
+            </form>
+        </div>
     </section>
 
     <!-- 页脚 -->
@@ -657,6 +766,44 @@
         closeMobile?.addEventListener('click', closeMobileNav);
         mobileLinks.forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); const target = link.getAttribute('href'); if (target) document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' }); closeMobileNav(); }));
         navPanel?.addEventListener('click', (e) => { if(e.target === navPanel) closeMobileNav(); });
+
+        // --- 合作意向表单提交 ---
+        const inquiryForm = document.getElementById('inquiryForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formMsg = document.getElementById('formMsg');
+        // 替换为你的 Formspree endpoint: https://formspree.io/f/你的FormID
+        const FORMSPREE_URL = 'https://formspree.io/f/mldjvgyo';
+
+        inquiryForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = inquiryForm.querySelector('[name="phone"]');
+            if (!phone || !phone.value.trim()) {
+                formMsg.textContent = '请填写手机号或微信，方便我联系您';
+                formMsg.className = 'text-xs mt-3 text-red-400';
+                phone?.focus();
+                return;
+            }
+            submitBtn.disabled = true;
+            submitBtn.textContent = '发送中……';
+            formMsg.textContent = '';
+
+            const formData = new FormData(inquiryForm);
+            try {
+                const res = await fetch(FORMSPREE_URL, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+                if (res.ok) {
+                    formMsg.textContent = '发送成功！我会在 24 小时内联系您。';
+                    formMsg.className = 'text-xs mt-3 text-green-400';
+                    inquiryForm.reset();
+                } else {
+                    throw new Error('server');
+                }
+            } catch (err) {
+                formMsg.textContent = '发送失败，请稍后重试。或直接联系邮箱 1250027279@qq.com';
+                formMsg.className = 'text-xs mt-3 text-red-400';
+            }
+            submitBtn.disabled = false;
+            submitBtn.textContent = '发送合作意向';
+        });
     </script>
 </body>
 </html>
